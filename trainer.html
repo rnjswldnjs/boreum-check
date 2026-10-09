@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>보름 근육검사 (트레이너)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/common.css">
+<style>
+  /* 체크표 [왼쪽 | 근육 | 오른쪽] — 사장님 검사지 형태 */
+  .ckhead{position:sticky;top:-20px;z-index:3;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:6px;background:var(--paper);
+    padding:24px 0 8px;margin:-14px 0 4px;font-size:12px;font-weight:700;color:var(--muted);text-align:center;border-bottom:1px solid var(--line)}
+  .possec{margin:16px 0 6px;font-size:12px;font-weight:800;color:var(--teal);display:flex;align-items:center;gap:8px}
+  .possec:after{content:'';flex:1;height:1px;background:var(--line)}
+  .ckrow{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:6px;margin-bottom:6px}
+  .side{border:1.5px solid var(--line);background:var(--card);border-radius:12px;min-height:50px;font-size:12.5px;font-weight:700;color:var(--teal-3);position:relative}
+  .side.off{background:var(--coral);border-color:var(--coral);color:#fff}
+  .side .was{position:absolute;top:4px;right:6px;font-size:9.5px;font-weight:700;color:var(--coral-deep);background:var(--coral-soft);border-radius:4px;padding:0 4px}
+  .side.off .was{display:none}
+  .mname{border:none;background:var(--mint);border-radius:12px;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.25;padding:6px 4px}
+  .mname small{display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px}
+  .mname .i{font-size:10px;color:var(--teal-2);font-weight:600}
+  .rxcard{margin-bottom:12px}
+  .rxcard h3{margin:0;font-size:15px;display:flex;align-items:center;gap:6px}
+  .rxcard .fx{font-size:12.5px;color:var(--ink-2);margin:6px 0 10px;line-height:1.6}
+  .rxcard img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+  .hist{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--line);background:none;border-left:none;border-right:none;border-top:none;width:100%;text-align:left}
+  .hist b{font-size:14px}.hist span{font-size:12px;color:var(--muted)}
+  .qrbox{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:12px;border:1px solid var(--line)}
+  .qrbox svg{width:180px;height:180px}
+  .linkbox{font-size:12px;word-break:break-all;background:var(--mint);border-radius:10px;padding:10px 12px;color:var(--ink-2)}
+  .hero{text-align:center;padding:18px 0 6px}
+  .hero .ko{font-size:44px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.05}
+  .hero .en{font-size:9.5px;letter-spacing:.28em;color:var(--teal-2);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="navrow">
+      <button class="backbtn" id="backBtn" aria-label="이전 단계로">←</button>
+      <p class="brand">Functional Recovery · 보름 근육검사</p>
+    </div>
+    <div class="titlerow"><span class="stepnum" id="stepNum"></span><h1 class="steptitle" id="stepTitle">잠금 해제</h1></div>
+    <div class="progress" id="progress"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- 잠금 -->
+  <section class="screen active" id="s-lock"><div class="scroll">
+    <div class="hero"><div class="ko">보름</div><div class="en">FUNCTIONAL RECOVERY MOVEMENT CENTER</div></div>
+    <div class="card mt2">
+      <p class="label">트레이너 전용</p>
+      <p class="desc">반사점 이미지는 사장님만 볼 수 있도록 잠겨 있어요. 이 기기에서 한 번만 입력하면 다음부터는 자동으로 열려요.</p>
+      <input class="field" id="pw" type="password" placeholder="비밀번호" autocomplete="current-password">
+      <button class="btn block mt" id="unlockBtn">열기</button>
+      <p class="note mt" id="lockMsg"></p>
+    </div>
+  </div></section>
+
+  <!-- 홈 -->
+  <section class="screen" id="s-home"><div class="scroll">
+    <div class="hero" style="padding-top:4px"><div class="ko" style="font-size:36px">보름</div><div class="en">움직임이 다시 시작되는 곳</div></div>
+    <div class="card mt">
+      <p class="label">새 검사</p>
+      <input class="field" id="memberName" placeholder="회원 이름 (선택)" maxlength="20">
+      <button class="btn block mt" id="startBtn">검사 시작</button>
+    </div>
+    <div class="card mt">
+      <p class="label">방문 전 자가진단 불러오기</p>
+      <p class="desc" style="margin-bottom:10px">회원이 카톡으로 보낸 자가진단 결과를 통째로 붙여넣으면 통증 부위·강도가 자동으로 채워져요.</p>
+      <textarea class="field" id="importText" placeholder="여기에 붙여넣기" style="min-height:64px"></textarea>
+      <button class="btn soft block mt" id="importBtn">불러와서 검사 시작</button>
+    </div>
+    <div class="card mt">
+      <p class="label">최근 검사</p>
+      <div id="histList"></div>
+    </div>
+    <div class="card mt">
+      <p class="label">회원용 자가진단 링크 (예약 메시지용)</p>
+      <p class="desc" style="margin-bottom:10px">예약 안내에 이 링크나 QR을 넣으면 회원이 방문 전에 통증 부위를 체크해 카톡으로 보내줄 수 있어요.</p>
+      <div class="qrbox" id="selfQr"></div>
+      <div class="linkbox mt" id="selfLink"></div>
+      <button class="btn ghost block mt" id="copySelfBtn">링크 복사</button>
+    </div>
+    <button class="btn ghost block mt2" id="lockBtn" style="border:none;color:var(--muted)">이 기기에서 잠그기</button>
+  </div></section>
+
+  <!-- STEP 1 통증 부위 -->
+  <section class="screen" id="s-areas"><div class="scroll" style="display:flex;flex-direction:column;justify-content:center">
+    <div style="text-align:center">
+      <h2 class="h">회원이 통증을 느끼는<br>부위를 모두 선택해 주세요</h2>
+      <p class="desc">허리·골반은 기본검사로 항상 포함돼요.<br>그 외 부위는 통증이 있을 때만 추가검사가 진행돼요.</p>
+      <p class="note" id="importedNote" style="margin:-6px 0 12px;color:var(--teal)"></p>
+    </div>
+    <div class="chips"><span class="chip sel fixed">허리</span><span class="chip sel fixed">골반</span></div>
+    <div class="chips mt" id="areaChips1"></div>
+    <div class="chips mt" id="areaChips2"></div>
+  </div>
+  <div class="footer"><span class="note" id="areaCount"></span><span class="spacer"></span><button class="btn" id="toCheckBtn">활성화 체크로</button></div></section>
+
+  <!-- STEP 2 활성화 체크 -->
+  <section class="screen" id="s-check"><div class="scroll" id="checkScroll">
+    <p class="desc" id="checkDesc">버티지 못한 쪽을 누르면 <b style="color:var(--coral-deep)">꺼짐</b>으로 바뀌어요. 근육 이름을 누르면 반사점과 기능을 볼 수 있어요.</p>
+    <div class="ckhead"><span>왼쪽</span><span>근육</span><span>오른쪽</span></div>
+    <div id="checkList"></div>
+  </div>
+  <div class="footer"><span class="note" id="offCount"></span><span class="spacer"></span><button class="btn" id="toResultBtn">결과 보기</button></div></section>
+
+  <!-- STEP 3 결과 -->
+  <section class="screen" id="s-result"><div class="scroll" id="resultScroll">
+    <div class="seg" id="resultTabs" style="margin-bottom:16px">
+      <button type="button" data-tab="member" class="sel">회원용</button>
+      <button type="button" data-tab="trainer">트레이너용</button>
+      <button type="button" data-tab="share">보내기</button>
+    </div>
+    <div id="tab-member"></div>
+    <div id="tab-trainer" hidden></div>
+    <div id="tab-share" hidden></div>
+  </div>
+  <div class="footer"><button class="btn ghost sm" id="homeBtn">처음으로</button><span class="spacer"></span><button class="btn coral sm" id="retestBtn">운동 후 재검사</button></div></section>
+
+  <div class="sheet-bg" id="sheetBg"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+</div>
+
+<script src="assets/qrcode.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/common.js"></script>
+<script>
+const B = window.Boreum, $ = s => document.querySelector(s);
+let REFLEX = null;                 // 복호화된 반사점 이미지 {이름: dataURL}
+let rec = null;                    // 현재 검사 기록
+let round = 'r1';                  // 'r1' 1차 / 'r2' 재검사
+let resultRound = null;            // 결과 화면에서 보고 있는 회차
+let screen = 'lock';
+const SITE = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');   // 같은 폴더의 index.html = 고객 페이지
+
+/* ---------- 반사점 복호화 (AES-GCM · PBKDF2) ---------- */
+async function unlock(pw) {
+  const buf = new Uint8Array(await (await fetch('assets/reflex.enc')).arrayBuffer());
+  const salt = buf.slice(0, 16), iv = buf.slice(16, 28), ct = buf.slice(28);
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function tryUnlock(pw, silent) {
+  $('#lockMsg').textContent = '여는 중…';
+  try { REFLEX = await unlock(pw); B.store('boreum_pw', pw); go(rec ? screenFromSaved() : 'home'); }
+  catch (e) { $('#lockMsg').textContent = silent ? '' : '비밀번호가 맞지 않아요.'; B.store('boreum_pw', null); }
+}
+$('#unlockBtn').onclick = () => tryUnlock($('#pw').value);
+$('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock($('#pw').value); });
+$('#lockBtn').onclick = () => { B.store('boreum_pw', null); REFLEX = null; $('#pw').value = ''; go('lock'); };
+
+/* ---------- 화면 전환 ---------- */
+const META = {
+  lock: { n: '', t: '잠금 해제', p: 0 }, home: { n: '', t: '근육검사', p: 0 },
+  areas: { n: '01', t: '통증 부위 선택', p: 1 }, check: { n: '02', t: '활성화 체크', p: 2 }, result: { n: '03', t: '결과', p: 3 },
+};
+function go(s) {
+  screen = s; document.querySelectorAll('.screen').forEach(el => el.classList.toggle('active', el.id === 's-' + s));
+  const m = META[s]; $('#stepNum').textContent = m.n;
+  $('#stepTitle').textContent = s === 'check' && round === 'r2' ? '재검사 (운동 후)' : m.t;
+  document.querySelectorAll('#progress span').forEach((el, i) => el.classList.toggle('on', i < m.p));
+  $('#progress').style.visibility = m.p ? 'visible' : 'hidden';
+  $('#backBtn').classList.toggle('show', ['areas', 'check', 'result'].includes(s));
+  if (s === 'home') renderHome(); if (s === 'areas') renderAreas(); if (s === 'check') renderCheck(); if (s === 'result') renderResult();
+  save();
+}
+$('#backBtn').onclick = () => {
+  if (screen === 'result') go('check');
+  else if (screen === 'check') { if (round === 'r2') { round = 'r1'; go('result'); } else go('areas'); }
+  else if (screen === 'areas') go('home');
+};
+function save() { if (rec) B.store('boreum_cur', { rec, round, screen }); }
+function screenFromSaved() { const s = B.store('boreum_cur'); return s && ['areas', 'check', 'result'].includes(s.screen) ? s.screen : 'home'; }
+function saveHistory() {
+  if (!rec) return; const h = B.store('boreum_hist') || [];
+  const item = { id: rec.id, name: rec.name, date: rec.date, off: B.countOff(rec.r2 || rec.r1), code: B.encodeRecord(rec), memo: rec.memo || '' };
+  const i = h.findIndex(x => x.id === rec.id); if (i >= 0) h[i] = item; else h.unshift(item);
+  B.store('boreum_hist', h.slice(0, 40));
+}
+
+/* ---------- 홈 ---------- */
+function renderHome() {
+  const h = B.store('boreum_hist') || [];
+  $('#histList').innerHTML = h.length ? h.slice(0, 12).map(x => `<button class="hist" data-id="${x.id}"><div><b>${B.esc(x.name || '이름 없음')}</b><br><span>${x.date}</span></div><span>꺼짐 ${x.off}곳 ›</span></button>`).join('')
+    : '<p class="note">아직 저장된 검사가 없어요.</p>';
+  document.querySelectorAll('.hist').forEach(b => b.onclick = () => {
+    const x = h.find(y => String(y.id) === b.dataset.id); rec = B.decodeRecord(x.code); rec.id = x.id; rec.memo = x.memo || '';
+    round = 'r1'; resultRound = null; go('result');
+  });
+  const link = SITE + 'index.html'; $('#selfLink').textContent = link; $('#selfQr').innerHTML = qrSVG(link);
+}
+$('#copySelfBtn').onclick = async () => B.toast(await B.copyText(SITE + 'index.html') ? '자가진단 링크를 복사했어요' : '복사하지 못했어요');
+$('#startBtn').onclick = () => { rec = B.newRecord(); rec.name = $('#memberName').value.trim(); round = 'r1'; resultRound = null; $('#importedNote').textContent = ''; go('areas'); };
+$('#importBtn').onclick = () => {
+  const x = B.extractCode($('#importText').value);
+  if (!x) return B.toast('코드를 찾지 못했어요');
+  if (x.type === 'r') { rec = B.decodeRecord(x.code); rec.id = Date.now(); round = 'r1'; resultRound = null; return go('result'); }
+  const s = B.decodeSelf(x.code); rec = B.newRecord(); rec.name = s.name || $('#memberName').value.trim(); rec.pain = s.pain;
+  const areas = new Set(); s.pain.forEach((p, i) => { const a = B.JOINT_TO_AREA[B.JOINT_NAMES[i]]; if (p != null && p > 0 && a) areas.add(a); });
+  rec.areas = [...areas]; rec.stage = B.selfStage(s.pain, s.level); round = 'r1'; resultRound = null;
+  const painTxt = s.pain.map((p, i) => p ? `${B.JOINT_NAMES[i]} ${p}` : null).filter(Boolean).join(', ');
+  $('#importedNote').textContent = `자가진단 불러옴 · ${painTxt || '통증 없음'}`; $('#importText').value = ''; go('areas');
+};
+
+/* ---------- STEP 1 ---------- */
+function renderAreas() {
+  const rows = [['무릎', '발목', '목'], ['어깨', '팔꿈치']];
+  [$('#areaChips1'), $('#areaChips2')].forEach((el, k) => {
+    el.innerHTML = rows[k].map(a => `<button type="button" class="chip${rec.areas.includes(a) ? ' sel' : ''}" aria-pressed="${rec.areas.includes(a)}" data-a="${a}">${a}</button>`).join('');
+  });
+  document.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a; rec.areas = rec.areas.includes(a) ? rec.areas.filter(x => x !== a) : [...rec.areas, a]; renderAreas(); save();
+  });
+  $('#areaCount').textContent = `검사할 근육 ${B.visibleIdx(rec.areas).length}개`;
+}
+$('#toCheckBtn').onclick = () => { round = 'r1'; go('check'); $('#checkScroll').scrollTop = 0; };
+
+/* ---------- STEP 2 체크표 ---------- */
+const POS_LABEL = { 앞: '[앞]', 옆: '[옆]', 엎: '[엎]', 누: '[누]' };
+function bits() { return round === 'r2' ? rec.r2 : rec.r1; }
+function renderCheck() {
+  const vis = B.visibleIdx(rec.areas); let html = '', last = null;
+  vis.forEach(i => {
+    const m = B.MUSCLES[i]; const sec = m.g === 'base' || m.g === 'shoulder' ? POS_LABEL[m.pos] : `${B.GROUP_LABEL[m.g]} 추가검사`;
+    if (sec !== last) { html += `<div class="possec">${sec}</div>`; last = sec; }
+    const b = bits()[i], was = round === 'r2' ? rec.r1[i] : 0;
+    const cell = s => { const bit = s === 'L' ? 1 : 2, off = b & bit;
+      return `<button type="button" class="side${off ? ' off' : ''}" data-i="${i}" data-s="${s}" aria-pressed="${!!off}" aria-label="${m.n} ${s === 'L' ? '왼쪽' : '오른쪽'}">${off ? '✓ 꺼짐' : '정상'}${was & bit ? '<span class="was">1차</span>' : ''}</button>`; };
+    html += `<div class="ckrow">${cell('L')}<button type="button" class="mname" data-info="${i}">${m.n}${m.hint ? `<small>(${m.hint})</small>` : ''}</button>${cell('R')}</div>`;
+  });
+  $('#checkList').innerHTML = html;
+  $('#checkDesc').innerHTML = round === 'r2'
+    ? '1차 결과를 그대로 불러왔어요. 운동 후 <b style="color:var(--teal)">다시 켜진 쪽</b>을 눌러 정상으로 바꿔주세요.'
+    : '버티지 못한 쪽을 누르면 <b style="color:var(--coral-deep)">꺼짐</b>으로 바뀌어요. 근육 이름을 누르면 반사점과 기능을 볼 수 있어요.';
+  updateCount();
+}
+$('#checkList').addEventListener('click', e => {
+  const s = e.target.closest('.side'); const n = e.target.closest('.mname');
+  if (s) {
+    const i = +s.dataset.i, bit = s.dataset.s === 'L' ? 1 : 2; bits()[i] ^= bit;
+    const off = bits()[i] & bit; s.classList.toggle('off', !!off); s.setAttribute('aria-pressed', !!off);
+    s.firstChild.textContent = off ? '✓ 꺼짐' : '정상'; updateCount(); save();
+  } else if (n) openInfo(+n.dataset.info);
+});
+function updateCount() { $('#offCount').innerHTML = `꺼짐 <b style="color:var(--coral-deep)">${B.countOff(bits())}</b>곳`; }
+$('#toResultBtn').onclick = () => { resultRound = round; go('result'); $('#resultScroll').scrollTop = 0; };
+
+/* 근육 정보 시트: 위치 + 기능 + 반사점 */
+function openInfo(i) {
+  const m = B.MUSCLES[i]; const one = new Array(B.N).fill(0); one[i] = 3;
+  const fx = m.f.map(f => f.replace(':', ' ')).join(', ');
+  const img = m.rx && REFLEX && REFLEX[m.rx] ? `<img src="${REFLEX[m.rx]}" alt="${m.n} 반사점">` : `<p class="note">${m.rx ? '반사점 이미지를 불러오지 못했어요.' : '이 근육은 반사점이 없어요.'}</p>`;
+  $('#sheetBody').innerHTML = `<h2 class="h">${m.n}${m.hint ? ` <small style="font-weight:500;color:var(--muted)">(${m.hint})</small>` : ''}</h2>
+    <p class="desc" style="margin-bottom:12px">기능 · ${fx}</p><p class="label">반사점</p>${img}
+    <p class="label mt2">위치</p>${m.map ? `<div class="bodymap">${B.mapSVG(one)}</div>` : '<p class="note">위치 표기 없음</p>'}
+    <button class="btn soft block mt" onclick="closeSheet()">닫기</button>`;
+  $('#sheet').classList.add('show'); $('#sheetBg').classList.add('show');
+}
+function closeSheet() { $('#sheet').classList.remove('show'); $('#sheetBg').classList.remove('show'); }
+$('#sheetBg').onclick = closeSheet;
+
+/* ---------- STEP 3 결과 ---------- */
+let tab = 'member';
+document.querySelectorAll('#resultTabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; renderResult(); $('#resultScroll').scrollTop = 0; });
+function renderResult() {
+  if (!resultRound || (resultRound === 'r2' && !rec.r2)) resultRound = rec.r2 ? 'r2' : 'r1';
+  document.querySelectorAll('#resultTabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === tab));
+  ['member', 'trainer', 'share'].forEach(t => $('#tab-' + t).hidden = t !== tab);
+  $('#retestBtn').textContent = rec.r2 ? '재검사 수정' : '운동 후 재검사';
+  if (tab === 'member') renderMember(); if (tab === 'trainer') renderTrainer(); if (tab === 'share') renderShare();
+  saveHistory();
+}
+function renderMember() {
+  const el = $('#tab-member'); el.innerHTML = B.customerView(rec, { editable: true, round: resultRound });
+  el.querySelectorAll('select.pain').forEach(s => s.onchange = () => { rec.pain[+s.dataset.ji] = s.value === '' ? null : +s.value; renderMember(); save(); saveHistory(); });
+  el.querySelectorAll('[data-stage]').forEach(b => b.onclick = () => { const v = +b.dataset.stage; rec.stage = rec.stage === v ? 0 : v; renderMember(); save(); saveHistory(); });
+  el.querySelectorAll('[data-round]').forEach(b => b.onclick = () => { resultRound = b.dataset.round; renderMember(); });
+}
+function renderTrainer() {
+  const cur = resultRound === 'r2' && rec.r2 ? rec.r2 : rec.r1; const a = B.analyze(cur);
+  const by = {}; B.offList(cur).forEach(([i, s]) => (by[i] = by[i] || []).push(s));
+  let html = `<p class="label">기능 이상 요약 ${rec.r2 ? `· ${resultRound === 'r2' ? '재검사' : '1차'} 기준` : ''}</p><div class="card">`;
+  const lines = B.JOINT_NAMES.map(j => {
+    const r = a[j]; const mv = Object.entries(r.mv).map(([k, o]) => `${k}(${o.L && o.R ? '양' : o.L ? '좌' : '우'})`);
+    if (r.stab.L || r.stab.R) mv.push(`안정화(${r.stab.L && r.stab.R ? '양' : r.stab.L ? '좌' : '우'})`);
+    return mv.length ? `<div style="font-size:13px;line-height:1.7"><b style="display:inline-block;width:56px">${j}</b>${mv.join(', ')}</div>` : '';
+  }).join('');
+  html += (lines || '<p class="note">기능 이상 없음</p>') + '</div>';
+  html += `<p class="label mt2">꺼진 근육 ${Object.keys(by).length}개 · 반사점</p>`;
+  html += Object.entries(by).map(([i, ss]) => {
+    const m = B.MUSCLES[i]; const side = ss.length === 2 ? '양쪽' : ss[0] === 'L' ? '왼쪽' : '오른쪽';
+    const img = m.rx && REFLEX && REFLEX[m.rx] ? `<img loading="lazy" src="${REFLEX[m.rx]}" alt="${m.n} 반사점">` : `<p class="note">${m.rx ? '' : '반사점 없음'}</p>`;
+    return `<div class="card rxcard"><h3>${m.n}<span class="offchip" style="font-size:11px">${side}</span></h3><div class="fx">${m.f.map(f => f.replace(':', ' ')).join(' · ')}</div>${img}</div>`;
+  }).join('') || '<p class="note">꺼진 근육이 없어요.</p>';
+  html += `<p class="label mt2">메모 (회원에게 보내지지 않아요)</p><textarea class="field" id="memo" placeholder="예) 하부승모근 통증 / 스쿼트 버팀">${B.esc(rec.memo || '')}</textarea>`;
+  $('#tab-trainer').innerHTML = html;
+  $('#memo').oninput = e => { rec.memo = e.target.value; save(); saveHistory(); };
+}
+function shareURL() { return SITE + 'index.html#r=' + B.encodeRecord(rec); }
+function renderShare() {
+  const url = shareURL(); const who = rec.name ? `${rec.name}님, ` : '';
+  const msg = `[기능회복운동센터 보름]\n${who}오늘 근육검사 결과를 보내드려요.\n아래 링크에서 내 몸 상태와 추천 운동을 확인해보세요 🙂\n${url}`;
+  $('#tab-share').innerHTML = `<p class="label">회원에게 결과 보내기</p>
+    <div class="card"><div class="qrbox">${qrSVG(url)}</div><p class="note" style="text-align:center;margin-top:8px">회원이 휴대폰 카메라로 찍으면 바로 열려요</p>
+    <div class="linkbox mt">${B.esc(url)}</div>
+    <div style="display:flex;gap:8px" class="mt"><button class="btn block" id="shareBtn">카톡으로 보내기</button><button class="btn ghost" id="copyLinkBtn">링크 복사</button></div></div>
+    <p class="note mt">링크에는 이름·검사 결과·통증 강도·현재 단계만 들어가요. 반사점 이미지와 메모는 포함되지 않아요. 서버에 저장되지 않고 링크 자체에 결과가 담겨요.</p>`;
+  $('#copyLinkBtn').onclick = async () => B.toast(await B.copyText(url) ? '링크를 복사했어요' : '복사하지 못했어요');
+  $('#shareBtn').onclick = async () => {
+    if (navigator.share) { try { await navigator.share({ title: '보름 근육검사 결과', text: msg.replace(url, '').trim(), url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    B.toast(await B.copyText(msg) ? '메시지를 복사했어요. 카톡에 붙여넣어 주세요' : '복사하지 못했어요');
+  };
+}
+$('#retestBtn').onclick = () => { if (!rec.r2) rec.r2 = rec.r1.slice(); round = 'r2'; go('check'); $('#checkScroll').scrollTop = 0; };
+$('#homeBtn').onclick = () => { saveHistory(); rec = null; B.store('boreum_cur', null); $('#memberName').value = ''; go('home'); };
+
+function qrSVG(text) {
+  try { const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+  catch (e) { return '<p class="note">QR을 만들 수 없어요 (인터넷 연결 확인)</p>'; }
+}
+
+/* ---------- 시작 ---------- */
+(function init() {
+  const cur = B.store('boreum_cur'); if (cur && cur.rec) { rec = cur.rec; round = cur.round || 'r1'; }
+  const pw = B.store('boreum_pw'); if (pw) tryUnlock(pw, true); else go('lock');
+})();
+</script>
+</body>
+</html>

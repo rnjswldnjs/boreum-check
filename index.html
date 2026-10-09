@@ -1,1 +1,190 @@
-# boreum-check
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>기능회복운동센터 보름</title>
+<meta name="description" content="보름 근육검사 결과 · 방문 전 자가진단">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/common.css">
+<style>
+  .hero{padding:26px 4px 6px}
+  .hero .en{font-size:9.5px;letter-spacing:.3em;color:var(--teal-2);line-height:1.9}
+  .hero .tag{font-size:15px;color:var(--ink-2);margin:22px 0 6px;line-height:1.6}
+  .hero .ko{font-size:56px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .hero .sub{font-size:13px;color:var(--ink-2);margin-top:6px}
+  .jgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .jbtn{border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:12px 12px;text-align:left;font-size:15px;font-weight:700}
+  .jbtn small{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
+  .jbtn.sel{border-color:var(--teal);background:var(--teal);color:#fff}.jbtn.sel small{color:#D5E9E5}
+  .slider{margin-bottom:14px}
+  .slider .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .slider .top b{font-size:15px}.slider .top span{font-size:22px;font-weight:800;color:var(--coral-deep)}
+  .slider input[type=range]{width:100%;accent-color:var(--coral)}
+  .slider .scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted)}
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:8px}
+  .opt b{font-size:15px}.opt small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+  .opt.sel{border-color:var(--teal);background:var(--mint)}
+  .light{display:flex;gap:14px;align-items:center}
+  .light .lamp{width:58px;height:58px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;font-weight:800}
+  .light b{font-size:18px;display:block}.light p{margin:4px 0 0;font-size:13px;color:var(--ink-2);line-height:1.55}
+  .resulthead{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .resulthead b{display:block;font-size:20px;color:var(--ink);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="navrow">
+      <button class="backbtn" id="backBtn" aria-label="이전으로">←</button>
+      <p class="brand">Functional Recovery · 보름</p>
+    </div>
+    <div class="titlerow"><span class="stepnum" id="stepNum"></span><h1 class="steptitle" id="stepTitle">기능회복운동센터 보름</h1></div>
+    <div class="progress" id="progress"><span></span><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- 검사 결과 (트레이너가 보낸 링크) -->
+  <section class="screen" id="s-report"><div class="scroll" id="reportScroll"></div></section>
+
+  <!-- 자가진단 -->
+  <section class="screen" id="s-intro"><div class="scroll">
+    <div class="hero">
+      <div class="en">FUNCTIONAL<br>RECOVERY<br>MOVEMENT CENTER</div>
+      <div class="tag">움직임이<br>다시 시작되는 곳</div>
+      <div class="sub">기능회복운동센터</div>
+      <div class="ko">보름</div>
+    </div>
+    <div class="card mt2">
+      <p class="label">방문 전 1분 자가진단</p>
+      <p class="desc">불편한 곳과 통증 정도를 알려주시면, 방문하셨을 때 어디부터 검사할지 미리 준비해둘게요.</p>
+      <input class="field" id="name" placeholder="이름 (선택)" maxlength="20">
+    </div>
+  </div>
+  <div class="footer"><span class="note">의료 진단이 아닌 참고용이에요</span><span class="spacer"></span><button class="btn" id="startBtn">시작하기</button></div></section>
+
+  <section class="screen" id="s-joints"><div class="scroll">
+    <h2 class="h">어디가 불편하세요?</h2><p class="desc">여러 곳을 골라도 돼요.</p>
+    <div class="jgrid" id="jgrid"></div>
+    <button type="button" class="opt mt" id="noneBtn" style="text-align:center"><b>불편한 곳이 없어요</b></button>
+  </div>
+  <div class="footer"><span class="note" id="jCount"></span><span class="spacer"></span><button class="btn" id="toPainBtn">다음</button></div></section>
+
+  <section class="screen" id="s-pain"><div class="scroll">
+    <h2 class="h">얼마나 아프세요?</h2><p class="desc">0은 통증 없음, 10은 상상할 수 있는 가장 심한 통증이에요.</p>
+    <div id="sliders"></div>
+  </div>
+  <div class="footer"><span class="spacer"></span><button class="btn" id="toLevelBtn">다음</button></div></section>
+
+  <section class="screen" id="s-level"><div class="scroll">
+    <h2 class="h">평소 운동은 어느 정도 하세요?</h2><p class="desc">가장 가까운 것을 골라주세요.</p>
+    <div id="levels"></div>
+  </div>
+  <div class="footer"><span class="spacer"></span><button class="btn" id="toResultBtn" disabled>결과 보기</button></div></section>
+
+  <section class="screen" id="s-self"><div class="scroll" id="selfScroll"></div>
+  <div class="footer"><button class="btn ghost sm" id="againBtn">다시 하기</button><span class="spacer"></span><button class="btn sm" id="sendBtn">센터에 보내기</button></div></section>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/common.js"></script>
+<script>
+const B = window.Boreum, $ = s => document.querySelector(s);
+const FRIENDLY = { 어깨: '', 날개뼈: '등 위쪽', 팔꿈치: '', 손목: '', 몸통: '허리·등', 목: '', 고관절: '엉덩이·사타구니', 무릎: '', 발목: '', 골반: '' };
+const LEVELS = [
+  { t: '거의 안 해요', s: '걷기 정도, 따로 운동은 안 해요' },
+  { t: '가끔 가볍게 해요', s: '스트레칭·필라테스·헬스를 가끔' },
+  { t: '취미로 꾸준히 해요', s: '주 2회 이상 운동·스포츠' },
+];
+const LIGHT = [
+  null,
+  { c: 'var(--coral)', t: '통증이 커요', d: '무리한 운동보다 전문 의료기관 상담을 먼저 권해드려요. 방문하시면 트레이너와 함께 상의해요.' },
+  { c: 'var(--amber)', t: '회복 운동부터 시작해요', d: '통증을 줄이고 움직임을 되찾는 기능 개선 운동이 필요한 단계예요.' },
+  { c: 'var(--green)', t: '가벼운 운동은 괜찮아요', d: '취미 수준의 운동이 가능한 상태예요. 근육검사로 약한 곳을 확인해보세요.' },
+  { c: 'var(--green)', t: '운동하기 좋은 상태예요', d: '강도 높은 운동도 가능한 상태예요. 근육검사로 균형을 확인해보세요.' },
+];
+let S = { name: '', joints: [], pain: new Array(10).fill(null), level: -1 };
+let screen = '', report = null, reportRound = null;
+
+function go(s) {
+  screen = s; document.querySelectorAll('.screen').forEach(el => el.classList.toggle('active', el.id === 's-' + s));
+  const steps = { joints: 1, pain: 2, level: 3, self: 4 }; const p = steps[s] || 0;
+  $('#stepNum').textContent = p ? '0' + p : ''; $('#progress').style.visibility = p ? 'visible' : 'hidden';
+  document.querySelectorAll('#progress span').forEach((el, i) => el.classList.toggle('on', i < p));
+  $('#stepTitle').textContent = { report: '근육검사 결과', intro: '방문 전 자가진단', joints: '불편한 곳', pain: '통증 강도', level: '운동 수준', self: '자가진단 결과' }[s];
+  $('#backBtn').classList.toggle('show', ['joints', 'pain', 'level', 'self'].includes(s));
+  if (s === 'joints') renderJoints(); if (s === 'pain') renderPain(); if (s === 'level') renderLevels(); if (s === 'self') renderSelf();
+}
+$('#backBtn').onclick = () => ({ joints: () => go('intro'), pain: () => go('joints'), level: () => go(S.joints.length ? 'pain' : 'joints'), self: () => go('level') })[screen]();
+
+/* ---------- 검사 결과 보기 ---------- */
+function showReport(code) {
+  try { report = B.decodeRecord(code); } catch (e) { return false; }
+  renderReport(); go('report'); return true;
+}
+function renderReport() {
+  const el = $('#reportScroll');
+  el.innerHTML = `<div class="resulthead">기능회복운동센터 보름<b>${report.name ? B.esc(report.name) + ' 님의 ' : ''}근육검사 결과</b></div>` + B.customerView(report, { round: reportRound });
+  el.querySelectorAll('[data-round]').forEach(b => b.onclick = () => { reportRound = b.dataset.round; renderReport(); });
+}
+
+/* ---------- 자가진단 ---------- */
+$('#startBtn').onclick = () => { S.name = $('#name').value.trim(); go('joints'); };
+function renderJoints() {
+  $('#jgrid').innerHTML = B.JOINT_NAMES.map(j => `<button type="button" class="jbtn${S.joints.includes(j) ? ' sel' : ''}" aria-pressed="${S.joints.includes(j)}" data-j="${j}">${j}${FRIENDLY[j] ? `<small>${FRIENDLY[j]}</small>` : ''}</button>`).join('');
+  document.querySelectorAll('.jbtn').forEach(b => b.onclick = () => { const j = b.dataset.j; S.joints = S.joints.includes(j) ? S.joints.filter(x => x !== j) : [...S.joints, j]; renderJoints(); });
+  $('#jCount').textContent = S.joints.length ? `${S.joints.length}곳 선택` : ''; $('#toPainBtn').disabled = !S.joints.length;
+}
+$('#noneBtn').onclick = () => { S.joints = []; S.pain = new Array(10).fill(null); go('level'); };
+$('#toPainBtn').onclick = () => go('pain');
+function renderPain() {
+  S.pain = S.pain.map((p, i) => S.joints.includes(B.JOINT_NAMES[i]) ? (p == null ? 5 : p) : null);
+  $('#sliders').innerHTML = B.JOINT_NAMES.map((j, i) => !S.joints.includes(j) ? '' :
+    `<div class="card slider"><div class="top"><b>${j}</b><span id="v${i}">${S.pain[i]}</span></div>
+     <input type="range" min="0" max="10" step="1" value="${S.pain[i]}" data-i="${i}" aria-label="${j} 통증 강도">
+     <div class="scale"><span>0 없음</span><span>5 보통</span><span>10 매우 심함</span></div></div>`).join('');
+  document.querySelectorAll('#sliders input').forEach(r => r.oninput = () => { S.pain[+r.dataset.i] = +r.value; $('#v' + r.dataset.i).textContent = r.value; });
+}
+$('#toLevelBtn').onclick = () => go('level');
+function renderLevels() {
+  $('#levels').innerHTML = LEVELS.map((l, i) => `<button type="button" class="opt${S.level === i ? ' sel' : ''}" data-l="${i}"><b>${l.t}</b><small>${l.s}</small></button>`).join('');
+  document.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { S.level = +b.dataset.l; renderLevels(); });
+  $('#toResultBtn').disabled = S.level < 0;
+}
+$('#toResultBtn').onclick = () => go('self');
+function selfText(code) {
+  const pains = S.pain.map((p, i) => p != null ? `${B.JOINT_NAMES[i]} ${p}/10` : null).filter(Boolean);
+  const st = B.selfStage(S.pain, S.level);
+  return `[보름 방문 전 자가진단]\n${S.name ? '이름: ' + S.name + '\n' : ''}통증: ${pains.join(', ') || '없음'}\n운동 수준: ${LEVELS[S.level].t}\n현재 단계: ${st}단계 · ${B.STAGES[st - 1].t}\n코드: ${code}`;
+}
+function renderSelf() {
+  const st = B.selfStage(S.pain, S.level); const L = LIGHT[st];
+  const pains = S.pain.map((p, i) => p != null ? `<span class="offchip">${B.JOINT_NAMES[i]} ${p}</span>` : '').join('');
+  $('#selfScroll').innerHTML = `<div class="resulthead">${S.name ? B.esc(S.name) + ' 님의 ' : ''}자가진단 결과</div>
+    <div class="card light mt"><div class="lamp" style="background:${L.c}">${st}</div><div><b>${L.t}</b><p>${L.d}</p></div></div>
+    <div class="sec"><span class="n">02</span><span class="t">현재 내 상태<span class="s">지금의 움직임 상태를 4단계로 확인해보세요.</span></span></div>
+    ${B.stageBar(st, false)}
+    <p class="label mt2">● 불편한 곳</p>${pains ? `<div class="offchips">${pains}</div>` : '<p class="note">불편한 곳이 없어요.</p>'}
+    <div class="card mt2" style="background:var(--mint);border-color:transparent"><b>다음 단계</b>
+      <p class="note" style="margin:6px 0 0;color:var(--ink-2)">아래 <b>센터에 보내기</b>를 눌러 카톡으로 보내주세요. 방문하시면 근육검사로 어떤 근육이 힘을 못 쓰고 있는지 정확히 확인해드려요.</p></div>
+    <p class="note mt">자가진단은 참고용이며 의료 진단을 대신하지 않아요.</p>`;
+}
+$('#sendBtn').onclick = async () => {
+  const code = B.encodeSelf({ name: S.name, pain: S.pain, level: S.level }); const text = selfText(code);
+  if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  B.toast(await B.copyText(text) ? '복사했어요. 보름 카톡 채널에 붙여넣어 주세요' : '복사하지 못했어요');
+};
+$('#againBtn').onclick = () => { S = { name: S.name, joints: [], pain: new Array(10).fill(null), level: -1 }; go('joints'); };
+
+/* ---------- 라우팅 ---------- */
+function route() {
+  const m = location.hash.match(/^#r=([A-Za-z0-9_-]+)/);
+  if (m && showReport(m[1])) return;
+  go('intro');
+}
+addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
